@@ -10,7 +10,7 @@
     ],
     "require": {
         "php": ">=5.3.0",
-	"doctrine/common": "dev-master"
+	"doctrine/common": "2.5.*@dev"
     },
     "autoload": {
         "psr-0": { "FBoon\\MapperBundle": "" }
