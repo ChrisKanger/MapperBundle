@@ -39,6 +39,16 @@ class AnnotationReader
         $properties = $this->getModelProperties($model);
         return $properties['object'];
     }
+    
+    public function getOneToMany($model)
+    {
+        $properties = $this->getModelProperties($model);
+        if (isset($properties['onetomany'])) {
+            return $properties['onetomany'];
+        } else {
+            return null;
+        }
+    }
 
     public function getModelProperties($model)
     {
@@ -53,7 +63,7 @@ class AnnotationReader
         );
         
         if (isset($classAnnotation->name)) {
-            $tvdbProperties['object'] = $classAnnotation;
+            $properties['object'] = $classAnnotation;
         }
         
         $reflProperties = $reflClass->getProperties();
@@ -66,7 +76,13 @@ class AnnotationReader
             foreach ($propertyAnnotations as $key => $propertyAnnotation) {
                 if ($propertyAnnotation instanceof Field) {
 
-                    $tvdbProperties['fields'][$reflProperty->getName()] =
+                    $properties['fields'][$reflProperty->getName()] =
+                            $this->validateCase($propertyAnnotation);
+                }
+                
+                if ($propertyAnnotation instanceof OneToMany) {
+                    
+                    $properties['onetomany'][$reflProperty->getName()] = 
                             $this->validateCase($propertyAnnotation);
                 }
             }
@@ -77,17 +93,17 @@ class AnnotationReader
                 $reflClass->getParentClass()
             );
 
-            $tvdbProperties['object'] = ($tvdbProperties['object'])
-                                              ? $tvdbProperties['object']
+            $properties['object'] = ($properties['object'])
+                                              ? $properties['object']
                                               : $properties['object'];
 
-            $tvdbProperties['fields'] = array_merge(
+            $properties['fields'] = array_merge(
                 $properties['fields'],
-                $tvdbProperties['fields']
+                $properties['fields']
             );
         }
 
-        return $tvdbProperties;
+        return $properties;
     }
 
     protected function validateCase($property)

@@ -12,6 +12,10 @@
         <service id="xml_mapper" class="FBoon\MapperBundle\Mapper\XmlMapper" >
             <argument type="service" id="fboon_annotationReader"/>
         </service>
+        
+        <service id="soap_mapper" class="FBoon\MapperBundle\Mapper\SoapMapper" >
+            <argument type="service" id="fboon_annotationReader"/>
+        </service>
 
     </services>
 

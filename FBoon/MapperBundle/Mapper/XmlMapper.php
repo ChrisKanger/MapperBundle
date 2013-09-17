@@ -20,6 +20,9 @@ class XmlMapper extends Mapper
     public function mapToModel($model, $dataSet)
     {
         $dataSet = $this->getSingleResult($dataSet);
+        
+        var_dump($dataSet);
+        
         if ($dataSet->getName() == 'root') {
             $dataSet = $dataSet->children();
         }
@@ -48,6 +51,13 @@ class XmlMapper extends Mapper
                         $reflectionProperty->setValue($model, (string)$this->getAttribute($dataSet, $value));
                     }
                 }
+                
+//                if ($key == 'onetomany') {
+//                    
+//                    $newReflection = new \ReflectionClass($value);
+//                    $reflectionProperty->setValue($model, $this->mapToModel($newReflection->newInstance(null), $this->getAttribute($dataSet, $value)));
+//                    
+//                }
             }
         }
 
