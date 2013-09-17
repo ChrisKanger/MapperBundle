@@ -29,16 +29,16 @@ class SoapMapper extends Mapper
             foreach ($properties['onetomany'] as $prop => $content) {
 
                 $refl = new \ReflectionClass($content->object);
-                $maatschappij = $refl->newInstance();
+                $instance = $refl->newInstance();
                 $subObjName = $content->name;
                 
                 $resultArr = array();
                 foreach ($dataSet->$subObjName as $key => $value) {
                     if (count($value) > 1) {
-                        $result = $this->mapToModels($maatschappij, $value);
+                        $result = $this->mapToModels($instance, $value);
                         array_push($resultArr, $result);
                     } else {
-                        $result = $this->mapToModel($maatschappij, $value);
+                        $result = $this->mapToModel($instance, $value);
                         array_push($resultArr, $result);
                     }
                 }
