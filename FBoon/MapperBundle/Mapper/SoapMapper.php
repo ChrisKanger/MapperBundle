@@ -32,17 +32,23 @@ class SoapMapper extends Mapper
                 $maatschappij = $refl->newInstance();
                 $subObjName = $content->name;
                 
+                $resultArr = array();
                 foreach ($dataSet->$subObjName as $key => $value) {
                     if (count($value) > 1) {
                         $result = $this->mapToModels($maatschappij, $value);
+                        array_push($resultArr, $result);
                     } else {
                         $result = $this->mapToModel($maatschappij, $value);
+                        array_push($resultArr, $result);
                     }
-                    
-                    $reflectionProperty = $reflectionClass->getProperty($prop);
-                    $reflectionProperty->setAccessible(true);
-
-                    $reflectionProperty->setValue($model, $result);
+                }
+                
+                $reflectionProperty = $reflectionClass->getProperty($prop);
+                $reflectionProperty->setAccessible(true);
+                if (count($resultArr) == 1) {
+                    $reflectionProperty->setValue($model, $resultArr[0]);
+                } else {
+                    $reflectionProperty->setValue($model, $resultArr);
                 }
             }
         }

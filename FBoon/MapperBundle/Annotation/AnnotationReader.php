@@ -58,6 +58,12 @@ class AnnotationReader
 
     protected function getPropertiesFromReflectionClass(\ReflectionClass $reflClass)
     {
+        $properties = array(
+            'object' => null,
+            'fields' => array(),
+            'onetomany' => array()
+        );
+        
         $classAnnotation = $this->reader->getClassAnnotation($reflClass,
             'FBoon\MapperBundle\Annotation\Object'
         );
@@ -87,22 +93,27 @@ class AnnotationReader
                 }
             }
         }
-
+        
         if ($reflClass->getParentClass()) {
-            $properties = $this->getPropertiesFromReflectionClass(
+            $parentProperties = $this->getPropertiesFromReflectionClass(
                 $reflClass->getParentClass()
             );
 
             $properties['object'] = ($properties['object'])
-                                              ? $properties['object']
-                                              : $properties['object'];
+                                        ? $properties['object']
+                                        : $parentProperties['object'];
 
             $properties['fields'] = array_merge(
                 $properties['fields'],
-                $properties['fields']
+                $parentProperties['fields']
+            );
+            
+            $properties['onetomany'] = array_merge(
+                $properties['onetomany'],
+                $parentProperties['onetomany']
             );
         }
-
+        
         return $properties;
     }
 
