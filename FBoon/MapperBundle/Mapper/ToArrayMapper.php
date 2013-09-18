@@ -35,10 +35,11 @@ class ToArrayMapper extends Mapper
                         
             } elseif (isset($properties['onetomany'][$refProps->getName()])) {
                 
-                if (is_array($refProps->getValue())) {
+                if (is_array($refProps->getValue($model))) {
                     $fields[$properties['onetomany'][$refProps->getName()]->name] = $this->mapToModels($refProps->getValue($model));
                 } else {
-                    $fields[$properties['onetomany'][$refProps->getName()]->name] = $this->mapToModel($refProps->getValue($model));
+                    $result = $this->mapToModel($refProps->getValue($model));
+                    $fields[$properties['onetomany'][$refProps->getName()]->name] = $result[$refProps->getName()];
                 }
                 
             } else {
