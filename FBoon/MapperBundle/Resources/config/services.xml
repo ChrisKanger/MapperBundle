@@ -9,6 +9,10 @@
             <argument type="service" id="annotation_reader"/>
         </service>
         
+        <service id="array_mapper" class="FBoon\MapperBundle\Mapper\ToArrayMapper" >
+            <argument type="service" id="fboon_annotationReader"/>
+        </service>
+        
         <service id="xml_mapper" class="FBoon\MapperBundle\Mapper\XmlMapper" >
             <argument type="service" id="fboon_annotationReader"/>
         </service>
