@@ -17,7 +17,7 @@ class SoapMapper extends Mapper
         
         foreach ($properties['fields'] as $prop => $content) {
             foreach ($content as $key => $value) {
-                if ($key == 'name') {
+                if ($key == 'name') {                    
                     $reflectionProperty = $reflectionClass->getProperty($prop);
                     $reflectionProperty->setAccessible(true);
                     $reflectionProperty->setValue($model, $dataSet->$value);

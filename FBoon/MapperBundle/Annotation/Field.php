@@ -10,4 +10,10 @@ use Doctrine\Common\Annotations\Annotation;
 class Field extends Annotation
 {
     public $name;
+    
+    public $type;
+    
+//    public $isAttribute;
+    
+    public $nullable;
 }

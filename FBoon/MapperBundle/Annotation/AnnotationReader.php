@@ -7,6 +7,8 @@ use Doctrine\Common\Collections\ArrayCollection;
 /**
  * When adding annotations extend this AnnotationReader
  * and override the getPropertiesFromReflectionClass.
+ * 
+ * TODO: attributes as array
  *
  * @author Frank Boon <boon.frank@gmail.com>
  */
@@ -40,6 +42,12 @@ class AnnotationReader
         return $properties['object'];
     }
     
+    public function getAttribute($model)
+    {
+        $properties = $this->getModelProperties($model);
+        return $properties['attribute'];
+    }
+    
     public function getOneToMany($model)
     {
         $properties = $this->getModelProperties($model);
@@ -60,16 +68,25 @@ class AnnotationReader
     {
         $properties = array(
             'object' => null,
+            'attribute' => null,
             'fields' => array(),
             'onetomany' => array()
         );
         
-        $classAnnotation = $this->reader->getClassAnnotation($reflClass,
-            'FBoon\MapperBundle\Annotation\Object'
-        );
+        $classAnnotations = $this->reader->getClassAnnotations($reflClass);
         
-        if (isset($classAnnotation->name)) {
-            $properties['object'] = $classAnnotation;
+        foreach ($classAnnotations as $classAnnotation) {
+            if ($classAnnotation instanceof Object) {
+                if (isset($classAnnotation->name)) {
+                    $properties['object'] = $classAnnotation;
+                }
+            }
+            
+            if ($classAnnotation instanceof Soap\Attribute) {
+                if (isset($classAnnotation->name)) {
+                    $properties['attribute'] = $classAnnotation;
+                }
+            }
         }
         
         $reflProperties = $reflClass->getProperties();
@@ -102,6 +119,10 @@ class AnnotationReader
             $properties['object'] = ($properties['object'])
                                         ? $properties['object']
                                         : $parentProperties['object'];
+            
+            $properties['attribute'] = ($properties['attribute'])
+                                        ? $properties['attribute']
+                                        : $parentProperties['attribute'];
 
             $properties['fields'] = array_merge(
                 $properties['fields'],
