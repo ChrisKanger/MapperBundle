@@ -57,6 +57,16 @@ class AnnotationReader
             return null;
         }
     }
+    
+    public function getOneToOne($model)
+    {
+        $properties = $this->getModelProperties($model);
+        if (isset($properties['onetoone'])) {
+            return $properties['onetoone'];
+        } else {
+            return null;
+        }
+    }
 
     public function getModelProperties($model)
     {
@@ -70,7 +80,8 @@ class AnnotationReader
             'object' => null,
             'attribute' => null,
             'fields' => array(),
-            'onetomany' => array()
+            'onetomany' => array(),
+            'onetoone' => array()
         );
         
         $classAnnotations = $this->reader->getClassAnnotations($reflClass);
@@ -108,6 +119,12 @@ class AnnotationReader
                     $properties['onetomany'][$reflProperty->getName()] = 
                             $this->validateCase($propertyAnnotation);
                 }
+                
+                if ($propertyAnnotation instanceof OneToOne) {
+                    
+                    $properties['onetoone'][$reflProperty->getName()] = 
+                            $this->validateCase($propertyAnnotation);
+                }
             }
         }
         
@@ -132,6 +149,11 @@ class AnnotationReader
             $properties['onetomany'] = array_merge(
                 $properties['onetomany'],
                 $parentProperties['onetomany']
+            );
+            
+            $properties['onetoone'] = array_merge(
+                $properties['onetoone'],
+                $parentProperties['onetoone']
             );
         }
         

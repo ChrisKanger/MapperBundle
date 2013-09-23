@@ -11,17 +11,33 @@ class SoapMapper extends Mapper
 {
     public function mapToModel($model, $dataSet) 
     {
-        $properties = $this->annotationReader->getModelProperties($model);     
+        $properties = $this->annotationReader->getModelProperties($model); 
+        
         $reflectionClass = new \ReflectionClass($model);
         $dataSet = $this->getBase($model, $dataSet);
-        
+
         foreach ($properties['fields'] as $prop => $content) {
             foreach ($content as $key => $value) {
-                if ($key == 'name') {                    
+                if ($key == 'name') {   
                     $reflectionProperty = $reflectionClass->getProperty($prop);
                     $reflectionProperty->setAccessible(true);
                     $reflectionProperty->setValue($model, $dataSet->$value);
                 }
+            }
+        }
+        
+        if (isset($properties['onetoone'])) {
+            foreach ($properties['onetoone'] as $prop => $content) {
+                
+                $refl = new \ReflectionClass($content->object);
+                $instance = $refl->newInstance();
+                $subObjName = $content->name;
+                
+                $result = $this->mapToModel($instance, $dataSet->$subObjName);
+                
+                $reflectionProperty = $reflectionClass->getProperty($prop);
+                $reflectionProperty->setAccessible(true);
+                $reflectionProperty->setValue($model, $result);
             }
         }
         
@@ -31,24 +47,31 @@ class SoapMapper extends Mapper
                 $refl = new \ReflectionClass($content->object);
                 $instance = $refl->newInstance();
                 $subObjName = $content->name;
-                
-                $resultArr = array();
-                foreach ($dataSet->$subObjName as $key => $value) {
-                    if (count($value) > 1) {
-                        $result = $this->mapToModels($instance, $value);
-                        array_push($resultArr, $result);
-                    } else {
-                        $result = $this->mapToModel($instance, $value);
-                        array_push($resultArr, $result);
+
+                try {
+                    $resultArr = array();
+                    
+//                    echo    "--".$subObjName."\n";
+                    
+                    foreach ($dataSet->$subObjName as $key => $value) {
+                        if (count($value) > 1) {
+
+                            $result = $this->mapToModels($instance, $value);
+                            array_push($resultArr, $result);
+                        } else {      
+                            $result = $this->mapToModel($instance, $value);
+                            array_push($resultArr, $result);
+                        }
                     }
-                }
-                
-                $reflectionProperty = $reflectionClass->getProperty($prop);
-                $reflectionProperty->setAccessible(true);
-                if (count($resultArr) == 1) {
-                    $reflectionProperty->setValue($model, $resultArr[0]);
-                } else {
-                    $reflectionProperty->setValue($model, $resultArr);
+
+                    $reflectionProperty = $reflectionClass->getProperty($prop);
+                    $reflectionProperty->setAccessible(true);
+                    if (count($resultArr) == 1) {
+                        $reflectionProperty->setValue($model, $resultArr[0]);
+                    } else {
+                        $reflectionProperty->setValue($model, $resultArr);
+                    }
+                } catch (\Exception $e) {
                 }
             }
         }
