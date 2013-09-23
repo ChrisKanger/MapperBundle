@@ -40,23 +40,48 @@ class ToSoapRequestMapper extends Mapper
                 $refProps->setAccessible(true);
 
                 if (isset($properties['fields'][$refProps->getName()])) {
-                    $fields[] = new \SoapVar($refProps->getValue($model), $this->getEncoding($properties['fields'][$refProps->getName()]->type), null, null, $properties['fields'][$refProps->getName()]->name, $this->namespace);
+                    
+                    if (isset($properties['fields'][$refProps->getName()]->nullable) 
+                            && $properties['fields'][$refProps->getName()]->nullable == true) {
+                        //  Very ugly emergency solution... PHP doesnt seem to like attributes
+                        $fields[] = new \SoapVar('<ns1:'.$properties['fields'][$refProps->getName()]->name.' xsi:nil="true" />', XSD_ANYXML);
+                    } else {
+                        $fields[] = new \SoapVar(
+                            $refProps->getValue($model), 
+                            $this->getEncoding($properties['fields'][$refProps->getName()]->type), 
+                            null, 
+                            null, 
+                            $properties['fields'][$refProps->getName()]->name, 
+                            $this->namespace
+                        );                        
+                    }
+                    
                 } elseif (isset($properties['onetomany'][$refProps->getName()])) {
 
                     if (is_array($refProps->getValue($model))) {      
                         $result = $this->mapToModels($refProps->getValue($model));
-
-                        $fields[] 
-                                = new \SoapVar($result, SOAP_ENC_OBJECT, null, null, $properties['onetomany'][$refProps->getName()]->name, $this->namespace);
                     } else {
-
                         $result = $this->mapToModel($refProps->getValue($model));
-                        $fields[] 
-                                = new \SoapVar($result, SOAP_ENC_OBJECT, null, null, $properties['onetomany'][$refProps->getName()]->name, $this->namespace);
                     }
+                    
+                    $fields[] = new \SoapVar(
+                        $result, 
+                        SOAP_ENC_OBJECT, 
+                        null, 
+                        null, 
+                        $properties['onetomany'][$refProps->getName()]->name, 
+                        $this->namespace
+                    );
 
                 } else {
-                    $fields[] = new \SoapVar($refProps->getValue($model), XSD_ANYTYPE, null, null, $refProps->getName(), $this->namespace);
+                    $fields[] = new \SoapVar(
+                        $refProps->getValue($model), 
+                        XSD_ANYTYPE, 
+                        null, 
+                        null, 
+                        $refProps->getName(), 
+                        $this->namespace
+                    );
 
                 }
             }
@@ -66,8 +91,16 @@ class ToSoapRequestMapper extends Mapper
             if (isset($properties['attribute'])) {
                 $prop =  $reflectionClass->getProperty($properties['attribute']->property);
                 $prop->setAccessible(true);
-
-                $array = new \SoapVar($fields, SOAP_ENC_OBJECT, $prop->getValue($model), null, $properties['object']->name, $this->namespace);              
+                
+                // Very ugly namespace solution for the xsi:type :(
+                $array = new \SoapVar(
+                    $fields, 
+                    SOAP_ENC_OBJECT, 
+                    'ns1:'.$prop->getValue($model), 
+                    null, 
+                    $properties['object']->name, 
+                    $this->namespace
+                );              
             } else {
                 $array = new \SoapVar($fields, SOAP_ENC_OBJECT, null, null, $properties['object']->name, $this->namespace);
             }
