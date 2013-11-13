@@ -60,18 +60,33 @@ class ToSoapRequestMapper extends Mapper
 
                     if (is_array($refProps->getValue($model))) {      
                         $result = $this->mapToModels($refProps->getValue($model));
+                        
+                        $fields[] = new \SoapVar(
+                            $result, 
+                            SOAP_ENC_OBJECT, 
+                            null, 
+                            null, 
+                            $properties['onetomany'][$refProps->getName()]->name, 
+                            $this->namespace
+                        );        
                     } else {
                         $result = $this->mapToModel($refProps->getValue($model));
+                        
+                        if (isset($result->enc_stype)) {
+                            $typeName = $result->enc_stype;
+                        } else {
+                            $typeName = null;
+                        }
+                        
+                        $fields[] = new \SoapVar(
+                            $result, 
+                            SOAP_ENC_OBJECT, 
+                            $typeName, 
+                            null, 
+                            $properties['onetomany'][$refProps->getName()]->name, 
+                            $this->namespace
+                        );
                     }
-                    
-                    $fields[] = new \SoapVar(
-                        $result, 
-                        SOAP_ENC_OBJECT, 
-                        null, 
-                        null, 
-                        $properties['onetomany'][$refProps->getName()]->name, 
-                        $this->namespace
-                    );
 
                 } else {
                     $fields[] = new \SoapVar(
@@ -100,7 +115,8 @@ class ToSoapRequestMapper extends Mapper
                     null, 
                     $properties['object']->name, 
                     $this->namespace
-                );              
+                );     
+                
             } else {
                 $array = new \SoapVar($fields, SOAP_ENC_OBJECT, null, null, $properties['object']->name, $this->namespace);
             }
