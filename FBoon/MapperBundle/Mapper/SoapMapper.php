@@ -15,13 +15,17 @@ class SoapMapper extends Mapper
         
         $reflectionClass = new \ReflectionClass($model);
         $dataSet = $this->getBase($model, $dataSet);
-
+        
         foreach ($properties['fields'] as $prop => $content) {
             foreach ($content as $key => $value) {
-                if ($key == 'name') {   
-                    $reflectionProperty = $reflectionClass->getProperty($prop);
-                    $reflectionProperty->setAccessible(true);
-                    $reflectionProperty->setValue($model, $dataSet->$value);
+                try {
+                    if ($key == 'name') {  
+                        $reflectionProperty = $reflectionClass->getProperty($prop);
+                        $reflectionProperty->setAccessible(true);
+                        $reflectionProperty->setValue($model, $dataSet->$value);
+                    }
+                } catch (\Exception $e)
+                {
                 }
             }
         }
@@ -47,18 +51,24 @@ class SoapMapper extends Mapper
                 $refl = new \ReflectionClass($content->object);
                 $instance = $refl->newInstance();
                 $subObjName = $content->name;
-
+                
                 try {
                     $resultArr = array();
                     
-//                    echo    "--".$subObjName."\n";
-                    
                     foreach ($dataSet->$subObjName as $key => $value) {
+                        
                         if (count($value) > 1) {
-
                             $result = $this->mapToModels($instance, $value);
                             array_push($resultArr, $result);
-                        } else {      
+                        } 
+                        else if ($dataSet->$subObjName instanceof \stdClass)
+                        {
+                            $result = array($this->mapToModel($instance, $dataSet->$subObjName));
+                            array_push($resultArr, $result);
+                            break 1;
+                        } 
+                        else
+                        {
                             $result = $this->mapToModel($instance, $value);
                             array_push($resultArr, $result);
                         }
@@ -69,6 +79,7 @@ class SoapMapper extends Mapper
                     if (count($resultArr) == 1) {
                         $reflectionProperty->setValue($model, $resultArr[0]);
                     } else {
+                        
                         $reflectionProperty->setValue($model, $resultArr);
                     }
                 } catch (\Exception $e) {
