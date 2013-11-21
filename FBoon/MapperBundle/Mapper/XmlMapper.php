@@ -21,8 +21,6 @@ class XmlMapper extends Mapper
     {
         $dataSet = $this->getSingleResult($dataSet);
         
-        var_dump($dataSet);
-        
         if ($dataSet->getName() == 'root') {
             $dataSet = $dataSet->children();
         }
@@ -73,6 +71,10 @@ class XmlMapper extends Mapper
      */
     protected function getAttribute($xml, $attribute)
     {
+        if ($xml->$attribute != null) {
+            return $xml->$attribute;
+        }
+        
         foreach ($xml->attributes() as $key => $value) {
             if ($key == $attribute) {
                 return $value;
